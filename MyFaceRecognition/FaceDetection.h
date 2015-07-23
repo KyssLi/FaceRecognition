@@ -10,11 +10,13 @@ public:
 
 	void set_save(const bool &);
 	void set_recognize(const bool &);
+	void set_have_image(const bool &);
 	void set_in_image(const cv::Mat &);
 	void set_out_image(const cv::Mat &);
 
 	cv::Mat get_in_image() const;
 	cv::Mat get_out_image() const;
+	bool empty_image() const;
 
 	void save_faces(const cv::Mat &) const;
 	bool is_empty() const;
@@ -24,6 +26,7 @@ public:
 private:
 	bool save;	// 是否保存脸部图像
 	bool recognize;	// 是否识别
+	bool have_image;	//	是否有图片
 	std::vector<cv::Rect> faces;	// 用来保存检测到的人脸
 	std::string path_images;	// 头像图片保存路径
 	std::string path_classifier;	//	Haar特征检测分类器所在的路径

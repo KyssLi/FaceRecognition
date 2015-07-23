@@ -1,35 +1,35 @@
 #include "stdafx.h"
-#include "Component.h"
+#include "Recognition.h"
 #include "FaceDetection.h"
 #include "CameraCapture.h"
 
+const std::string img_path(".\\data\\me.pgm");
+
 int main(int argc, char **argv)
 {
-	// 分类器初始化
+	// 检测器初始化
 	FaceDetection mydetect;
-	mydetect.initialization();
+	mydetect.initialization();	// 加载已经分类好的分类器
 	if (mydetect.is_empty())
 	{
 		std::string error_msg = "加载级联分类器失败，请检查训练器是否是新版本的";
 		std::cout << error_msg << std::endl;
-		system("pause");
 		return -1;
 	}
-	// 识别初始化
+	// 识别器初始化
 	Recognition myrec;
 	myrec.initialization();
 	// 摄像头调用
 	CameraCapture mycap;
-	mycap.set_s_mode(camera);
+	mycap.set_s_mode(camera);	// 指定为从摄像头调入图片
 	if (myrec.need_train())
 	{
-		std::cout << "请在摄像头开启后，对准摄像头，并按下回车键来保存图片信息：" << std::endl;
+		std::cout << "请在摄像头开启后，对准摄像头，并按下回车键来保存图片信息。" << std::endl;
 		mycap.cap_begin();
-		Sleep(3000);
+		//Sleep(3000);	// 为了保证代码可靠的执行
 		if (!mycap.is_open())
 		{
-			std::cout << "Sorry, open failure." << std::endl;
-			system("pause");
+			std::cout << "打开摄像头失败，请重试！" << std::endl;
 			return -1;
 		}
 		// 处理每一帧
@@ -49,24 +49,28 @@ int main(int argc, char **argv)
 		myrec.start_work();
 	}
 	system("cls");
-
 	std::cout << "识别模式：" << std::endl;
 	mycap.cap_begin();
-	Sleep(3000);
+	//Sleep(2000);
 	mydetect.set_recognize(true);
+	myrec.initialization();	// 再次初始化
 	if (!mycap.is_open())
 	{
-		std::cout << "Sorry, open failure." << std::endl;
-		system("pause");
+		std::cout << "打开摄像头失败，请重试！" << std::endl;
 		return -1;
 	}
 	cv::Mat image;
 	while (!mycap.is_stop())
 	{
+		system("cls");
 		mycap >> image;
-		mydetect.start_work(image);
-		myrec.set_current_image(std::string(".\\data\\me.pgm"));
-		myrec.start_work();
+		mydetect.start_work(image);	// 检测人脸
+		if (!mydetect.empty_image())	//	如果没有检测到人脸，就继续检测
+		{
+			myrec.set_current_image(img_path);
+			myrec.start_work();	// 识别人脸
+			mydetect.set_have_image(false);
+		}
 		if (cv::waitKey(30) == 27)	//	按Esc键退出
 			mycap.cap_release();
 	}
